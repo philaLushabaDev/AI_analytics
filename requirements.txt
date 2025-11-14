@@ -8,5 +8,4 @@ sqlalchemy==2.3.1
 pymysql==1.1.0
 python-dotenv==1.0.0
 pydantic==2.6.3
-python-multipart==0.0.6
 openpyxl==3.1.2
