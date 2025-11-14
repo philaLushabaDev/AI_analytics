@@ -34,10 +34,11 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # NOTE: avoid hard-coded secrets in source. Set DB credentials via env vars.
-DB_USER = os.getenv("DB_USER", "if0_40254179")
-DB_PASS = os.getenv("DB_PASS", "")  # no default secret in code
-DB_HOST = os.getenv("DB_HOST", "sql207.infinityfree.com")
-DB_NAME = os.getenv("DB_NAME", "")  # prefer explicit env var in deployment
+DB_USER = os.getenv("DB_USER", "avnadmin")
+DB_PORT = os.getenv("DB_PORT", "13152")
+DB_PASS = os.getenv("DB_PASS", "AVNS_lurH_tAP0IeniHK2r7b")  # no default secret in code
+DB_HOST = os.getenv("DB_HOST", "mysql-10505a59-philalushaba11d-51bd.f.aivencloud.com")
+DB_NAME = os.getenv("DB_NAME", "defaultdb")  # prefer explicit env var in deployment
 
 MODEL_PATH = "ai_tabular_model.joblib"
 SCALER_PATH = "ai_scaler.joblib"
@@ -141,18 +142,15 @@ def generate_synthetic_agg(path: str = AGG_DATA_CSV, n_orgs: int = 50, seed: int
 # -------------------------
 _engine = None
 
-
 def get_engine():
-    """
-    Lazily create and return the SQLAlchemy engine so that CLI / runtime env var overrides work.
-    """
     global _engine
     if _engine is None:
         db_user = os.getenv("DB_USER", DB_USER)
-        db_pass = os.getenv("DB_PASS", DB_PASS)
+        db_pass = quote_plus(os.getenv("DB_PASS", DB_PASS))
         db_host = os.getenv("DB_HOST", DB_HOST)
+        db_port = os.getenv("DB_PORT", DB_PORT)
         db_name = os.getenv("DB_NAME", DB_NAME)
-        database_url = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}/{db_name}"
+        database_url = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
         try:
             _engine = create_engine(database_url, pool_pre_ping=True)
             logger.info("Created DB engine for %s@%s/%s", db_user, db_host, db_name)
@@ -160,7 +158,6 @@ def get_engine():
             logger.exception("Failed to create DB engine: %s", e)
             raise
     return _engine
-
 
 app = FastAPI(title="AI Analytics (scikit-learn) with Notifications")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -999,3 +996,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
